@@ -1,0 +1,23 @@
+{
+  "manifest_version": 2,
+
+  "name": "GetRidOf",
+  "version": "0.1",
+
+  "browser_action": {
+    "default_icon": "icon.png"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["https://*.index.hu/*", "https://index.hu/*", "https://*.velvet.hu/*", "https://*.index2.hu/*", "https://*.napi.hu/*", "https://*.femina.hu/*"],
+      "js": ["content.js"]
+    }
+  ],
+
+  "permissions": [
+    "tabs",
+    "<all_urls>"
+  ]
+
+}
