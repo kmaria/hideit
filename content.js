@@ -30,6 +30,18 @@ for (var i = 0; i < proposedList.length; i++) {
   }
 }
 
+function saveWordList(words) {
+  chrome.storage.sync.set({'words': words}, function() {
+    console.log('Value is set to ' + words);
+  });
+}
+
+function loadWordList() {
+  chrome.storage.sync.get(['words'], function(result) {
+    console.log('Value currently is ' + result.words);
+  });
+}
+
 function getSelectionText() {
     var text = "";
     if (window.getSelection) {
