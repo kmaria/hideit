@@ -11,7 +11,7 @@
   "content_scripts": [
     {
       "matches": ["https://*.index.hu/*", "https://index.hu/*", "https://*.velvet.hu/*", "https://*.index2.hu/*", "https://*.napi.hu/*", "https://*.femina.hu/*"],
-      "js": ["content.js"]
+      "js": ["jquery-3.3.1.min.js", "content.js"]
     }
   ],
 
