@@ -44,13 +44,56 @@ function loadWordList() {
 
 function getSelectionText() {
     var text = "";
+
     if (window.getSelection) {
         text = window.getSelection().toString();
     } else if (document.selection && document.selection.type != "Control") {
         text = document.selection.createRange().text;
     }
+
+    if (text !== "") {
+      openTextSaver(text);
+    }
+
     console.log(text);
     return text;
 }
 
 $('article').mouseup(getSelectionText);
+
+var s = 
+  '<div id="hideit-text-saver" title="Save text">'+
+    '<p>' +
+      '<span class="ui-icon ui-icon-alert" style="float:left; margin:12px 12px 20px 0;"></span>' +
+      '<span class="hideit-text"></span>' +
+    '</p>' +
+'</div>';
+
+$('body').append(s);
+
+function textSaverDialog() {
+  $( function() {
+    $( "#hideit-text-saver" ).dialog({
+      resizable: false,
+      height: "auto",
+      width: 400,
+      modal: true,
+      buttons: {
+        "Unwanted": function() {
+          $( this ).dialog( "close" );
+        },
+        "Wanted": function() {
+          $( this ).dialog( "close" );
+        },
+        Cancel: function() {
+          $( this ).dialog( "close" );
+        }
+      }
+    });
+  } );
+}
+
+function openTextSaver(text) {
+  $('#hideit-text-saver .hideit-text').text(text);
+  setTimeout(textSaverDialog, 0);
+}
