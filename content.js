@@ -1,78 +1,83 @@
-var list = document.getElementsByClassName('cimlap-anyag');
-var sponsoredBlockList = document.getElementsByClassName('szponzoralt-blokk_container');
-var embeddedBlockList = document.getElementsByClassName('medium-rectangle-anyag ad-label-top');
-var proposedList = document.getElementsByClassName('cikk_also_ajanlo visible');
+(function hideIt() {
+  var unwantedWords = [];
+  var wantedWords = [];
 
-var listOfWords = ['futball', 'barca', 'átlövő', 'chelsea', 'liverpool', 'real', 'levetkőzött', 'hajdú', 'sarka', 'közösülj', 'berki krisztián', '18+'];
-let arrayLength = listOfWords.length;
+  function hideOtherContent() {
+    var sponsoredBlockList = document.getElementsByClassName('szponzoralt-blokk_container');
+    var embeddedBlockList = document.getElementsByClassName('medium-rectangle-anyag ad-label-top');
 
-for (var i = 0; i < list.length; i++) {
-  for (var j = 0; j < arrayLength; j++) {
-    if (list[i].textContent.toLowerCase().match(listOfWords[j]) ) {
-      list[i].style.display = 'none';
+    for (var i = 0; i < sponsoredBlockList.length; i++) {
+      sponsoredBlockList[i].style.display = 'none';
+    }
+
+    for (var i = 0; i < embeddedBlockList.length; i++) {
+      embeddedBlockList[i].style.display = 'none';
     }
   }
-}
 
-for (var i = 0; i < sponsoredBlockList.length; i++) {
-  sponsoredBlockList[i].style.display = 'none';
-}
+  function hideArticles() {
+    var matcher = unwantedWords.join('|');
 
-for (var i = 0; i < embeddedBlockList.length; i++) {
-  embeddedBlockList[i].style.display = 'none';
-}
+    $('article').each(function(index, article) {
+      var text=$(article).text().trim().toLowerCase();
 
-for (var i = 0; i < proposedList.length; i++) {
-  for (var j = 0; j < arrayLength; j++) {
-    if (proposedList[i].textContent.toLowerCase().match(listOfWords[j]) ) {
-      proposedList[i].style.display = 'none';
-    }
+      if (text.match(matcher)) {
+        //$(article).css('background-color', 'red');
+        $(article).hide(3000);
+      }
+    });
   }
-}
 
-function saveWordList(words) {
-  chrome.storage.sync.set({'words': words}, function() {
-    console.log('Value is set to ' + words);
-  });
-}
+  function saveWordList() {
+    chrome.storage.sync.set({'words': {'unwanted': unwantedWords, 'wanted': wantedWords}}, function() {
+      //printWords();
+    });
+  }
 
-function loadWordList() {
-  chrome.storage.sync.get(['words'], function(result) {
-    console.log('Value currently is ' + result.words);
-  });
-}
+  function printWords() {
+    console.log('Wordlist:' + wantedWords.join(',') + "-" + unwantedWords.join(","));
+  }
 
-function getSelectionText() {
-    var text = "";
+  function loadWordList() {
+    chrome.storage.sync.get(['words'], function(result) {
+      var words = (result && result.words) || {};
+      unwantedWords = words.unwanted || [];
+      wantedWords = words.wanted || [];
 
-    if (window.getSelection) {
-        text = window.getSelection().toString();
-    } else if (document.selection && document.selection.type != "Control") {
-        text = document.selection.createRange().text;
-    }
+      //printWords();
+      hideArticles();
+    });
+  }
 
-    if (text !== "") {
-      openTextSaver(text);
-    }
+  function getSelectionText() {
+      var text = "";
 
-    console.log(text);
-    return text;
-}
+      if (window.getSelection) {
+          text = window.getSelection().toString();
+      } else if (document.selection && document.selection.type != "Control") {
+          text = document.selection.createRange().text;
+      }
 
-$('article').mouseup(getSelectionText);
+      if (text !== "") {
+        openTextSaver(text.toLowerCase());
+      }
+  }
 
-var s = 
-  '<div id="hideit-text-saver" title="Save text">'+
-    '<p>' +
-      '<span class="ui-icon ui-icon-alert" style="float:left; margin:12px 12px 20px 0;"></span>' +
-      '<span class="hideit-text"></span>' +
-    '</p>' +
-'</div>';
+  function unwantedButtonHandler(text) {
+    unwantedWords.push(text);
+    saveWordList();
+    hideArticles();
+  }
 
-$('body').append(s);
+  function wantedButtonHandler(text) {
+    wantedWords.push(text);
+    saveWordList();
+    hideArticles();
+  }
 
-function textSaverDialog() {
-  $( function() {
+  function textSaverDialog(text) {
+    console.log("textSaverDialog:", text);
+
     $( "#hideit-text-saver" ).dialog({
       resizable: false,
       height: "auto",
@@ -80,9 +85,11 @@ function textSaverDialog() {
       modal: true,
       buttons: {
         "Unwanted": function() {
+          unwantedButtonHandler(text);
           $( this ).dialog( "close" );
         },
         "Wanted": function() {
+          wantedButtonHandler(text);
           $( this ).dialog( "close" );
         },
         Cancel: function() {
@@ -90,10 +97,38 @@ function textSaverDialog() {
         }
       }
     });
-  } );
-}
+  }
 
-function openTextSaver(text) {
-  $('#hideit-text-saver .hideit-text').text(text);
-  setTimeout(textSaverDialog, 0);
-}
+  function openTextSaver(text) {
+    $('#hideit-text-saver .hideit-text').text(text);
+    var save = textSaverDialog.bind(null, text);
+
+    setTimeout(save, 0);
+  }
+
+  function setMouseUpEventToOpenSelection() {
+    $('article').mouseup(getSelectionText);
+  }
+
+  function injectPopupIntoDOM() {
+    var s = 
+    '<div id="hideit-text-saver" title="Save text">'+
+      '<p>' +
+        '<span class="ui-icon ui-icon-alert" style="float:left; margin:12px 12px 20px 0;"></span>' +
+        '<span class="hideit-text"></span>' +
+      '</p>' +
+    '</div>';
+
+    $('body').append(s);
+  }
+
+  function init() {
+    setMouseUpEventToOpenSelection();
+
+    injectPopupIntoDOM();
+
+    loadWordList();
+  }
+
+  init();
+})();
