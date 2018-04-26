@@ -19,7 +19,7 @@
     if (unwantedWords.length === 0) {
       return;
     }
-    
+
     var matcher = unwantedWords.join('|');
 
     $('article').each(function(index, article) {
@@ -104,7 +104,7 @@
   }
 
   function openTextSaver(text) {
-    $('#hideit-text-saver .hideit-text').text(text);
+    $('#hideit-text-saver input').val(text);
     var save = textSaverDialog.bind(null, text);
 
     setTimeout(save, 0);
@@ -119,7 +119,7 @@
     '<div id="hideit-text-saver" title="Save text">'+
       '<p>' +
         '<span class="ui-icon ui-icon-alert" style="float:left; margin:12px 12px 20px 0;"></span>' +
-        '<span class="hideit-text"></span>' +
+        '<input class="hideit-text" type="text" value="">' +
       '</p>' +
     '</div>';
 
