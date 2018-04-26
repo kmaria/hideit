@@ -2,6 +2,46 @@
   var unwantedWords = [];
   var wantedWords = [];
 
+  init();
+
+  function init() {
+    setMouseUpEventToOpenSelection();
+
+    injectPopupIntoDOM();
+
+    loadWordList();
+
+    hideOtherContent();
+  }
+
+  function setMouseUpEventToOpenSelection() {
+    $('article').mouseup(getSelectionText);
+  }
+
+  function injectPopupIntoDOM() {
+    var s = 
+    '<div id="hideit-text-saver" title="Save text">'+
+      '<p>' +
+        '<div>You can edit or add words separated by commas.</div>' +
+        '<span class="ui-icon ui-icon-alert" style="float:left; margin:12px 12px 20px 0;"></span>' +
+        '<input class="hideit-text" type="text" value="">' +
+      '</p>' +
+    '</div>';
+
+    $('body').append(s);
+  }
+
+  function loadWordList() {
+    chrome.storage.sync.get(['words'], function(result) {
+      var words = (result && result.words) || {};
+      unwantedWords = words.unwanted || [];
+      wantedWords = words.wanted || [];
+
+      //printWords();
+      hideArticles();
+    });
+  }
+
   function hideOtherContent() {
     var sponsoredBlockList = document.getElementsByClassName('szponzoralt-blokk_container');
     var embeddedBlockList = document.getElementsByClassName('medium-rectangle-anyag ad-label-top');
@@ -32,27 +72,6 @@
     });
   }
 
-  function saveWordList() {
-    chrome.storage.sync.set({'words': {'unwanted': unwantedWords, 'wanted': wantedWords}}, function() {
-      //printWords();
-    });
-  }
-
-  function printWords() {
-    console.log('Wordlist:' + wantedWords.join(',') + "-" + unwantedWords.join(","));
-  }
-
-  function loadWordList() {
-    chrome.storage.sync.get(['words'], function(result) {
-      var words = (result && result.words) || {};
-      unwantedWords = words.unwanted || [];
-      wantedWords = words.wanted || [];
-
-      //printWords();
-      hideArticles();
-    });
-  }
-
   function getSelectionText() {
       var text = "";
 
@@ -63,25 +82,16 @@
       }
 
       if (text !== "") {
-        openTextSaver(text.toLowerCase());
+        setDialogInputText(text);
+        openTextSaver();
       }
   }
 
-  function unwantedButtonHandler(text) {
-    unwantedWords.push(text);
-    saveWordList();
-    hideArticles();
+  function setDialogInputText(text) {
+    $('#hideit-text-saver input').val(text.toLowerCase());
   }
 
-  function wantedButtonHandler(text) {
-    wantedWords.push(text);
-    saveWordList();
-    hideArticles();
-  }
-
-  function textSaverDialog(text) {
-    console.log("textSaverDialog:", text);
-
+  function openTextSaver() {
     $( "#hideit-text-saver" ).dialog({
       resizable: false,
       height: "auto",
@@ -89,11 +99,11 @@
       modal: true,
       buttons: {
         "Unwanted": function() {
-          unwantedButtonHandler(text);
+          handleDialogButton(false);
           $( this ).dialog( "close" );
         },
         "Wanted": function() {
-          wantedButtonHandler(text);
+          handleDialogButton(true);
           $( this ).dialog( "close" );
         },
         Cancel: function() {
@@ -103,36 +113,38 @@
     });
   }
 
-  function openTextSaver(text) {
-    $('#hideit-text-saver input').val(text);
-    var save = textSaverDialog.bind(null, text);
+  function handleDialogButton(wanted) {
+    var words = getDialogInputText();
+    if (words.length === 0) {
+      return;
+    }
 
-    setTimeout(save, 0);
+    if (wanted) {
+      wantedWords = wantedWords.concat(words);
+    } else {
+      unwantedWords = unwantedWords.concat(words);
+    }
+
+    saveWordList();
+    hideArticles();
   }
 
-  function setMouseUpEventToOpenSelection() {
-    $('article').mouseup(getSelectionText);
+  function getDialogInputText() {
+    var text = $('#hideit-text-saver input').val();
+    text = text.toLowerCase();
+    var textArr = text.split(",");
+
+    return textArr;
   }
 
-  function injectPopupIntoDOM() {
-    var s = 
-    '<div id="hideit-text-saver" title="Save text">'+
-      '<p>' +
-        '<span class="ui-icon ui-icon-alert" style="float:left; margin:12px 12px 20px 0;"></span>' +
-        '<input class="hideit-text" type="text" value="">' +
-      '</p>' +
-    '</div>';
-
-    $('body').append(s);
+  function saveWordList() {
+    chrome.storage.sync.set({'words': {'unwanted': unwantedWords, 'wanted': wantedWords}}, function() {
+      //printWords();
+    });
   }
 
-  function init() {
-    setMouseUpEventToOpenSelection();
-
-    injectPopupIntoDOM();
-
-    loadWordList();
+  function printWords() {
+    console.log('Wordlist:' + wantedWords.join(',') + "-" + unwantedWords.join(","));
   }
 
-  init();
 })();
