@@ -16,6 +16,10 @@
   }
 
   function hideArticles() {
+    if (unwantedWords.length === 0) {
+      return;
+    }
+    
     var matcher = unwantedWords.join('|');
 
     $('article').each(function(index, article) {
