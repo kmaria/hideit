@@ -11,13 +11,30 @@
   "content_scripts": [
     {
       "matches": ["https://*.index.hu/*", "https://index.hu/*", "https://*.velvet.hu/*", "https://*.index2.hu/*", "https://*.napi.hu/*", "https://*.femina.hu/*"],
-      "js": ["content.js"]
+      "js": ["external/jquery/jquery.js", "jquery-ui.min.js", "content.js"],
+      "css": ["jquery-ui.min.css"]
     }
+  ],
+
+  "web_accessible_resources": [
+    "images/*",
+    "external/jquery/*",
+    "jquery-ui.css",
+    "jquery-ui.js",
+    "jquery-ui.min.css",
+    "jquery-ui.min.js",
+    "jquery-ui.structure.css",
+    "jquery-ui.structure.min.css",
+    "jquery-ui.theme.css",
+    "jquery-ui.theme.min.css",
+    "jquery-ui.structure.min.css",
+    "jquery-ui.theme.min.css"
   ],
 
   "permissions": [
     "tabs",
-    "<all_urls>"
+    "<all_urls>",
+    "storage"
   ]
 
 }
